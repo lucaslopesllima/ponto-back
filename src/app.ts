@@ -4,6 +4,7 @@ import cookie from '@fastify/cookie';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
 import { env } from './config/env.js';
+import { isOriginAllowed } from './lib/cors-origins.js';
 import { registerErrorHandler } from './plugins/error-handler.js';
 import { authRoutes } from './routes/v1/auth.routes.js';
 import { timeEntryRoutes } from './routes/v1/time-entry.routes.js';
@@ -23,22 +24,35 @@ export async function buildApp() {
     requestIdHeader: 'x-request-id',
   });
 
-  await app.register(helmet, {
-    global: true,
-    contentSecurityPolicy: env.NODE_ENV === 'production',
-  });
-
+  /** CORS antes de helmet/rate-limit para preflight e credenciais não falharem. */
   await app.register(cors, {
-    origin: env.CORS_ORIGIN.split(',').map((s) => s.trim()),
+    origin: (origin, cb) => {
+      if (!origin) {
+        cb(null, true);
+        return;
+      }
+      if (isOriginAllowed(origin)) {
+        cb(null, true);
+        return;
+      }
+      cb(null, false);
+    },
     credentials: true,
   });
 
   await app.register(cookie);
 
+  await app.register(helmet, {
+    global: true,
+    contentSecurityPolicy: env.NODE_ENV === 'production',
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  });
+
   await app.register(rateLimit, {
     global: true,
     max: 100,
     timeWindow: '1 minute',
+    allowList: (req) => req.method === 'OPTIONS',
   });
 
   registerErrorHandler(app);

@@ -72,6 +72,7 @@ function buildDayRow(dateStr, entries, user) {
     const sorted = [...entries].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
     const fmt = (d) => formatDateInTz(d, tz, 'HH:mm');
     const times = sorted.map((e) => fmt(e.timestamp));
+    const addresses = sorted.map((e) => e.address ?? null);
     let totalMinutes = 0;
     for (let i = 0; i + 1 < sorted.length; i += 2) {
         const a = sorted[i].timestamp;
@@ -104,6 +105,7 @@ function buildDayRow(dateStr, entries, user) {
     return {
         date: dateStr,
         times,
+        addresses,
         totalMinutes: Math.round(totalMinutes),
         status,
         dayOpen,
@@ -152,7 +154,11 @@ export async function getMirrorMonth(user, year, month // 1-12
         const d = formatDateInTz(e.timestamp, tz, 'yyyy-MM-dd');
         if (!byDay.has(d))
             byDay.set(d, []);
-        byDay.get(d).push({ type: String(e.type), timestamp: e.timestamp });
+        byDay.get(d).push({
+            type: String(e.type),
+            timestamp: e.timestamp,
+            address: e.location?.address ?? null,
+        });
     }
     const ref = new Date(Date.UTC(year, month - 1, 15, 12, 0, 0));
     const z = toZonedTime(ref, tz);

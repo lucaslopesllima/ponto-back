@@ -18,13 +18,18 @@ import { env } from '../config/env.js';
 const ACCESS_COOKIE = 'access_token';
 const REFRESH_COOKIE = 'refresh_token';
 
+/**
+ * Em produção (HTTPS), `SameSite=None` + `Secure` permite enviar cookies em
+ * `fetch` cross-site (ex.: front `ponto-front.vercel.app` → API `ponto-back.vercel.app`).
+ * `Strict` bloqueia isso e o login parece falhar após o CORS estar ok.
+ */
 function cookieOptions(httpOnly: boolean, maxAgeMs: number) {
   const secure = env.NODE_ENV === 'production';
   return {
     path: '/',
     httpOnly,
     secure,
-    sameSite: secure ? ('strict' as const) : ('lax' as const),
+    sameSite: secure ? ('none' as const) : ('lax' as const),
     maxAge: maxAgeMs,
   };
 }
@@ -50,8 +55,14 @@ export function setAuthCookies(
 }
 
 export function clearAuthCookies(reply: FastifyReply): void {
-  reply.clearCookie(ACCESS_COOKIE, { path: '/' });
-  reply.clearCookie(REFRESH_COOKIE, { path: '/' });
+  const secure = env.NODE_ENV === 'production';
+  const clearOpts = {
+    path: '/',
+    secure,
+    sameSite: secure ? ('none' as const) : ('lax' as const),
+  };
+  reply.clearCookie(ACCESS_COOKIE, clearOpts);
+  reply.clearCookie(REFRESH_COOKIE, clearOpts);
 }
 
 export async function registerUser(input: {

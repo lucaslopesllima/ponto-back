@@ -3,7 +3,7 @@ declare const envSchema: z.ZodObject<{
     NODE_ENV: z.ZodDefault<z.ZodEnum<["development", "production", "test"]>>;
     PORT: z.ZodDefault<z.ZodNumber>;
     MONGODB_URI: z.ZodString;
-    /** Vírgula: inclua `http://127.0.0.1:3000` se o front for aberto por IP (origem diferente de `localhost`). */
+    /** Vírgula. Inclua o front em produção (ex.: Vercel). */
     CORS_ORIGIN: z.ZodDefault<z.ZodString>;
     API_PREFIX: z.ZodDefault<z.ZodString>;
     JWT_SECRET: z.ZodString;

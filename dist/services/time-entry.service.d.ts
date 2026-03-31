@@ -29,6 +29,8 @@ export interface DayMirrorRow {
     date: string;
     /** Horários HH:mm na ordem do dia (todas as batidas) */
     times: string[];
+    /** Endereço de cada batida na mesma ordem de `times` (null quando indisponível). */
+    addresses: (string | null)[];
     totalMinutes: number;
     status: DayMirrorStatus;
     /** true = número ímpar de batidas (jornada em aberto) */
