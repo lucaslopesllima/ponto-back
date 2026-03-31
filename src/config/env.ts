@@ -7,10 +7,12 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().default(3333),
   MONGODB_URI: z.string().min(1),
-  /** Vírgula: inclua `http://127.0.0.1:3000` se o front for aberto por IP (origem diferente de `localhost`). */
+  /** Vírgula. Inclua o front em produção (ex.: Vercel). */
   CORS_ORIGIN: z
     .string()
-    .default('http://localhost:3000,http://127.0.0.1:3000'),
+    .default(
+      'http://localhost:3000,http://127.0.0.1:3000,https://ponto-front.vercel.app'
+    ),
   API_PREFIX: z.string().default('/api/v1'),
   JWT_SECRET: z.string().min(32),
   JWT_REFRESH_SECRET: z.string().min(32),
